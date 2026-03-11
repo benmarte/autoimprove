@@ -1,8 +1,8 @@
 {
   "name": "autoimprove",
-  "version": "2.0.0",
-  "description": "Language-agnostic autonomous codebase improvement loop. Detects your stack, builds a scoring suite, then iterates: propose → implement → measure → keep/discard. Works with any language or framework.",
+  "version": "2.1.0",
+  "description": "Language-agnostic autonomous codebase improvement loop using isolated git worktrees. Every experiment runs on its own branch — main is never touched until a winning change is merged. Works with any language or framework.",
   "author": "autoimprove",
-  "skills": ["detect-stack", "improve-loop", "measure", "rollback"],
-  "commands": ["improve", "measure", "status", "setup"]
+  "skills": ["detect-stack", "worktree", "improve-loop", "measure", "rollback"],
+  "commands": ["setup", "improve", "measure", "status"]
 }

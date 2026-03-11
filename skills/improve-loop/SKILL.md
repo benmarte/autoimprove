@@ -1,96 +1,169 @@
 ---
-description: Autonomous improvement loop for any codebase. Reads autoimprove.config.md for the measurement suite, then iterates: propose a change → measure before → implement → measure after → keep if improved, discard if not → log → repeat.
+description: Autonomous improvement loop for any codebase. Uses git worktrees to run every experiment in isolation — the main branch is never touched until a winning change is explicitly merged. Reads autoimprove.config.md for the measurement suite, then iterates: create worktree → propose → implement in worktree → measure → merge if improved, delete if not → log → repeat.
 ---
 
 # AutoImprove Loop Skill
 
-You are an autonomous code improvement agent. Your loop is identical regardless of language:
-**propose → snapshot → implement → measure → keep or discard → log → repeat**
+Every experiment runs in an isolated git worktree. The main codebase is **never modified** during experiments. Only winning changes get squash-merged back.
+
+```
+Main branch ──────────────────────────────────── (never touched mid-session)
+                 │              │
+           experiment-001  experiment-002
+           (kept ✅ → merge) (discarded ❌ → deleted)
+```
+
+---
 
 ## Pre-flight checks
 
-Before starting any iteration:
-1. Check `autoimprove.config.md` exists. If not, stop and say: "Run /autoimprove:setup first to detect your stack."
-2. Run `git status`. If working tree is not clean, stop and say: "Please commit or stash your changes first."
-3. Read `autoimprove.config.md` fully — this is your measurement bible for this project.
+Before the first iteration:
+
+1. Check `autoimprove.config.md` exists. If not, stop: "Run /autoimprove:setup first."
+2. Check git is available: `git status`
+3. Confirm main working tree is clean. If not, stop: "Please commit or stash changes before running autoimprove."
+4. Record the base commit: `git rev-parse HEAD` — all experiments branch from here.
+5. Run the worktree skill's **setup** step to create `.autoimprove-wt/` and update `.gitignore`.
+6. Run the measure skill in the **main directory** to get the BASELINE score.
+7. Report: "Baseline: XX/100. All experiments will run in isolated worktrees. Main branch is safe."
 
 ---
 
 ## The Loop
 
-### Step 1 — PROPOSE
+### Step 1 — CREATE WORKTREE
+
+Use the worktree skill to create a new isolated branch and directory:
+
+```bash
+EXPERIMENT_ID=$(printf "%03d" $N)
+git worktree add -b "autoimprove/experiment-$EXPERIMENT_ID" \
+  ".autoimprove-wt/experiment-$EXPERIMENT_ID"
+```
+
+All work for this iteration happens inside `.autoimprove-wt/experiment-$EXPERIMENT_ID/`.
+The main directory is not touched.
+
+### Step 2 — PROPOSE
+
 Choose one focused improvement from the **Improvement Areas** in `autoimprove.config.md`.
-Rotate through areas — don't repeat the same area if it failed last time.
+Rotate areas — don't repeat an area that failed last time.
 
-State your hypothesis explicitly:
-> "I will [specific change] in [specific file(s)] because I expect it to [improve which metric] by [rough amount]."
+State the hypothesis explicitly:
+> "I will [specific change] in [file(s)] because I expect [metric] to improve by ~[X] points."
 
-Keep scope tight: ideally 1–3 files, one concern.
+### Step 3 — SNAPSHOT (BEFORE score)
 
-### Step 2 — SNAPSHOT (BEFORE score)
-Run the full measurement suite from `autoimprove.config.md`. Record as **BEFORE**.
+Measure from inside the worktree directory (same commands, different cwd):
+```bash
+cd .autoimprove-wt/experiment-$EXPERIMENT_ID
+# run measurement suite from autoimprove.config.md
+```
+Record as **BEFORE**.
 
-### Step 3 — IMPLEMENT
-Make the change. Be surgical. Do not touch files outside your stated scope.
-If you discover the change is larger than expected, stop, discard, and propose a smaller version.
+### Step 4 — IMPLEMENT
 
-### Step 4 — MEASURE (AFTER score)
-Run the full measurement suite again. Record as **AFTER**.
+Make the change inside the worktree. The main directory is untouched.
+Commit the change to the experiment branch:
 
-### Step 5 — DECIDE
+```bash
+cd .autoimprove-wt/experiment-$EXPERIMENT_ID
+git add -A
+git commit -m "experiment($EXPERIMENT_ID): $HYPOTHESIS_ONE_LINE"
+```
 
-| Condition | Action |
-|---|---|
-| AFTER > BEFORE | **KEEP** ✅ — log the win, move to next iteration |
-| AFTER == BEFORE | **KEEP** ✅ only if it's a clear readability win with zero risk. Otherwise discard. |
-| AFTER < BEFORE | **DISCARD** ❌ — run `git checkout -- [changed files]`, verify clean state, log the failure |
+### Step 5 — MEASURE (AFTER score)
 
-### Step 6 — LOG
-Append to `autoimprove-log.md`:
+Run the full measurement suite again from inside the worktree.
+Record as **AFTER**.
+
+### Step 6 — DECIDE
+
+**If AFTER > BEFORE — KEEP ✅**
+
+Squash-merge the experiment back to main:
+```bash
+cd [main project root]
+git merge --squash "autoimprove/experiment-$EXPERIMENT_ID"
+git commit -m "autoimprove($EXPERIMENT_ID): $HYPOTHESIS_ONE_LINE
+
+Score: $BEFORE → $AFTER (+$DELTA pts)
+Files changed: $FILES"
+
+# Clean up
+git worktree remove ".autoimprove-wt/experiment-$EXPERIMENT_ID"
+git branch -D "autoimprove/experiment-$EXPERIMENT_ID"
+```
+
+**If AFTER == BEFORE — KEEP ✅ only for clear readability wins, DISCARD otherwise**
+
+Same merge process as above if keeping, discard process if not.
+
+**If AFTER < BEFORE — DISCARD ❌**
+
+Main branch is already untouched. Just delete the worktree:
+```bash
+git worktree remove ".autoimprove-wt/experiment-$EXPERIMENT_ID" --force
+git branch -D "autoimprove/experiment-$EXPERIMENT_ID"
+```
+No rollback needed — there was nothing to roll back.
+
+### Step 7 — LOG
+
+Append to `autoimprove-log.md` in the **main** directory:
 
 ```
 ## Iteration N — [timestamp]
 **Hypothesis:** [what you tried and why]
+**Branch:** autoimprove/experiment-NNN
 **Files changed:** [list]
 **Before:** [X/100] — type: X, build: X, tests: X, lint: X
 **After:**  [X/100] — type: X, build: X, tests: X, lint: X
-**Decision:** KEPT ✅ / DISCARDED ❌
+**Decision:** KEPT ✅ (merged to main) / DISCARDED ❌ (worktree deleted)
 **Reason:** [one sentence]
 ```
 
-### Step 7 — REPEAT
+### Step 8 — REPEAT from Step 1
+
+---
+
+## Session end — cleanup
+
+After all iterations (or if the user stops early):
+
+```bash
+# Remove any remaining experiment worktrees
+for wt in .autoimprove-wt/experiment-*; do
+  git worktree remove "$wt" --force 2>/dev/null
+done
+git branch | grep "autoimprove/experiment" | xargs git branch -D 2>/dev/null
+rm -rf .autoimprove-wt
+```
+
+Report: final score, iterations run, wins vs discards, list of merged commits.
 
 ---
 
 ## Universal Improvement Areas
 
-These apply to any language. Used when config doesn't specify language-specific ones:
+Rotate through these (add language-specific ones from `autoimprove.config.md`):
 
-**Correctness** — fix failing tests, remove dead code, fix compiler warnings
-
-**Type Safety** — replace dynamic/untyped constructs, add null guards, narrow broad types
-
-**Error Handling** — find unhandled errors, bare catch blocks, swallowed exceptions
-
-**Code Duplication** — extract 3+ repeated patterns into shared functions/constants
-
-**Naming & Readability** — rename cryptic identifiers, break up long functions, add comments
-
-**Performance** — fix N+1 query patterns, cache expensive pure computations
-
-**Security** — no hardcoded secrets, validate inputs, check auth on protected routes
-
-**Tests** — add a test for the most critical untested function, fix flaky tests
+- **Type safety** — fix type errors, replace `any`/`interface{}`/untyped constructs
+- **Error handling** — unhandled promises, bare `catch {}`, swallowed errors
+- **Dead code** — unused imports, variables, unreachable branches
+- **Code duplication** — extract repeated logic (3+ occurrences) into shared utilities
+- **Naming & readability** — cryptic names, functions over ~50 lines
+- **Performance** — N+1 query patterns, missing memoization, unnecessary allocations
+- **Security** — hardcoded secrets, missing input validation, unguarded auth routes
+- **Tests** — add a test for the most critical untested function, fix flaky tests
 
 ---
 
-## Safety Rules (Universal)
+## Safety Rules
 
-- **Never** modify lock files (`package-lock.json`, `Cargo.lock`, `go.sum`, `Gemfile.lock`, etc.)
-- **Never** modify generated files (migrations, protobuf output, OpenAPI generated code)
-- **Never** modify `.env` or any secrets file
+- **Main branch is never modified** until a winning experiment is explicitly squash-merged
+- **Never** modify lock files, generated files, migrations, `.env` — in any worktree
 - **Never** run deploy, publish, or push commands
-- **Always** require a clean git state before starting
-- **Always** roll back fully on discard — verify with `git status`
 - If the same area fails 3 iterations in a row, skip it and note in the log
-- After 10 iterations, pause and write a summary, then wait for human review
+- After 10 iterations, pause, clean up worktrees, and wait for human review
+- On any unexpected error: run the worktree skill's **cleanup** step, then stop and report

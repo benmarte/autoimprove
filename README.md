@@ -42,7 +42,8 @@ claude plugin install ./autoimprove-plugin
 
 # 4. Review in the morning
 cat autoimprove-log.md
-git diff
+git log --oneline   # one commit per winning experiment
+git show HEAD       # inspect the latest win
 ```
 
 That's it. No config required upfront — `/autoimprove:setup` fingerprints your project and writes `autoimprove.config.md` automatically.
@@ -62,7 +63,26 @@ That's it. No config required upfront — `/autoimprove:setup` fingerprints your
 
 It writes an `autoimprove.config.md` file in your project root — a plain Markdown config that maps your specific tools to a **0–100 composite quality score**. You can edit this file to customise the loop for your project.
 
-### 2. The score
+### 2. Isolated experiments via git worktrees
+
+Every experiment runs in a **separate git worktree** — its own directory, its own branch, completely isolated from your main codebase:
+
+```
+your-project/              ← main branch (never touched during experiments)
+.autoimprove-wt/           ← gitignored, auto-created
+  experiment-001/          ← branch: autoimprove/experiment-001
+  experiment-002/          ← branch: autoimprove/experiment-002
+  experiment-003/          ← branch: autoimprove/experiment-003
+```
+
+- ✅ Winning experiments get **squash-merged** back to main as a clean commit
+- ❌ Losing experiments have the **worktree and branch deleted** — nothing touches main
+- 🔒 Your working directory is **read-only** for the entire session
+- 🧹 All worktrees are cleaned up automatically at session end
+
+No more `git checkout -- .` rollbacks. No risk of a broken experiment corrupting your codebase.
+
+### 3. The score
 
 Every iteration, the loop measures your codebase on four axes:
 
@@ -75,28 +95,31 @@ Every iteration, the loop measures your codebase on four axes:
 
 If a metric doesn't apply (no tests yet, no linter configured), its weight is redistributed across the others.
 
-### 3. The loop
+### 4. The loop
 
 Each iteration:
 
-1. **Proposes** one bounded improvement with an explicit hypothesis — *"I will fix the three unhandled promise rejections in `api/invoices.ts` because I expect it to reduce TypeScript errors and improve the type score by ~8 points"*
-2. **Measures** the current score (BEFORE)
-3. **Implements** the change (surgical — 1–3 files at most)
-4. **Measures** again (AFTER)
-5. **Keeps** if AFTER ≥ BEFORE, **discards** with `git checkout` if AFTER < BEFORE
-6. **Logs** the result to `autoimprove-log.md`
+1. **Creates** a fresh git worktree + branch (`autoimprove/experiment-NNN`)
+2. **Proposes** one bounded improvement with an explicit hypothesis — *"I will fix the three unhandled promise rejections in `api/invoices.ts` because I expect it to reduce TypeScript errors and improve the type score by ~8 points"*
+3. **Measures** the score inside the worktree (BEFORE)
+4. **Implements** the change inside the worktree (surgical — 1–3 files at most)
+5. **Measures** again (AFTER)
+6. **Keeps** — squash-merges to main and deletes the worktree — if AFTER ≥ BEFORE
+7. **Discards** — deletes the worktree and branch, main untouched — if AFTER < BEFORE
+8. **Logs** the result to `autoimprove-log.md`
 
-### 4. The log
+### 5. The log
 
 After each iteration, `autoimprove-log.md` gets an entry like:
 
 ```
 ## Iteration 4 — 2026-03-11 02:14
 **Hypothesis:** Replace 3 `any` types in convex/invoices.ts with proper TypeScript interfaces
+**Branch:** autoimprove/experiment-004
 **Files changed:** convex/invoices.ts
 **Before:** 74/100 — type: 28, build: 20, tests: 18, lint: 8
 **After:**  82/100 — type: 36, build: 20, tests: 18, lint: 8
-**Decision:** KEPT ✅
+**Decision:** KEPT ✅ (squash-merged to main, worktree deleted)
 **Reason:** Eliminated 2 TS errors by typing the invoice mutation arguments properly
 ```
 
@@ -180,8 +203,10 @@ The loop is designed to be safe to run unattended:
 | 🔒 Never touches secrets | `.env`, `.env.local`, any secrets file |
 | 🔒 Never deploys or publishes | No `git push`, `npm publish`, `cargo publish`, etc. |
 | 🔒 Requires clean git state | Won't start if `git status` shows uncommitted changes |
-| 🔒 Full rollback on discard | `git checkout -- [files]` + verified clean state |
-| 🔒 Pauses every 10 iterations | Writes summary and waits for human review |
+| 🔒 Experiments in isolated worktrees | Each experiment is on its own branch — main is never modified mid-session |
+| 🔒 Losers deleted, not rolled back | Failed experiments: worktree deleted, branch deleted, main untouched |
+| 🔒 Winners squash-merged | One clean commit per winning experiment — easy to review with `git log` |
+| 🔒 Pauses every 10 iterations | Cleans up worktrees, writes summary, waits for human review |
 
 You always review and push — the loop never commits or pushes on your behalf.
 
@@ -196,12 +221,14 @@ autoimprove-plugin/
 ├── skills/
 │   ├── detect-stack/
 │   │   └── SKILL.md         # Fingerprints project, writes autoimprove.config.md
+│   ├── worktree/
+│   │   └── SKILL.md         # Creates/manages/cleans up git worktrees per experiment
 │   ├── improve-loop/
-│   │   └── SKILL.md         # The core propose→measure→implement→decide loop
+│   │   └── SKILL.md         # Core loop: worktree → propose → implement → measure → merge/delete
 │   ├── measure/
 │   │   └── SKILL.md         # Standalone score check
 │   └── rollback/
-│       └── SKILL.md         # Safe git rollback helper
+│       └── SKILL.md         # Emergency cleanup of all experiment worktrees
 └── commands/
     ├── setup.md             # /autoimprove:setup
     ├── improve.md           # /autoimprove:improve [N]
@@ -226,11 +253,12 @@ Here's what a real overnight session looks like. This is from a Next.js + Convex
 
 ## Iteration 5 — 23:37
 **Hypothesis:** Move ExpenseList to a server component — it only reads data, no interactivity
+**Branch:** autoimprove/experiment-005
 **Files changed:** components/ExpenseList.tsx
 **Before:** 71/100 — type: 32, build: 20, tests: 10, lint: 9
 **After:**  68/100 — type: 26, build: 20, tests: 10, lint: 12
-**Decision:** DISCARDED ❌
-**Reason:** Removing "use client" broke useQuery hook — must stay client component. Rolled back.
+**Decision:** DISCARDED ❌ (worktree deleted, main untouched)
+**Reason:** Removing "use client" broke useQuery hook — must stay client component.
 
 ## Iteration 8 — 00:02
 **Hypothesis:** Add unit tests for calculateTaxEstimate() — most complex function, zero coverage

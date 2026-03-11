@@ -1,19 +1,26 @@
 ---
-description: Start the autonomous improvement loop. Runs N iterations (default 5) of propose → implement → measure → keep/discard. Pass a number to control iterations, e.g. /autoimprove:improve 10
+description: Start the autonomous improvement loop using isolated git worktrees. Runs N iterations (default 5). Each experiment runs on its own branch — the main codebase is never touched until a winning change is merged. Pass a number to control iterations, e.g. /autoimprove:improve 10
 arguments: optional number of iterations (default: 5)
 ---
 
 Start the autoimprove loop for $ARGUMENTS iterations (use 5 if no number given).
 
-Before starting:
+**Pre-flight:**
 1. Check `autoimprove.config.md` exists. If not, stop: "Run /autoimprove:setup first."
-2. Confirm git working tree is clean (`git status`). If not, stop: "Please commit or stash changes first."
-3. Run the measure skill and record the BASELINE score.
-4. Tell the user: "Starting autoimprove — N iterations. Baseline: XX/100. Logging to autoimprove-log.md."
+2. Confirm git working tree is clean. If not, stop: "Please commit or stash changes first."
+3. Run worktree setup (create `.autoimprove-wt/`, update `.gitignore`).
+4. Run measure skill in the main directory — record as BASELINE.
+5. Tell the user:
+   > "Starting autoimprove — N iterations. Baseline: XX/100.
+   > Each experiment runs in an isolated git worktree.
+   > Your main branch will not be modified until a winning change is confirmed.
+   > Logging all results to autoimprove-log.md."
 
-Then run the improve-loop skill for the requested number of iterations.
+**Run the improve-loop skill** for the requested number of iterations.
 
-After all iterations complete:
-- Report: total wins vs discards, score change (baseline → final)
-- List all files changed and kept
-- Remind user: "Review autoimprove-log.md and run `git diff` before committing."
+**After all iterations — session summary:**
+- Clean up all remaining worktrees (worktree skill cleanup step)
+- Report: total iterations, wins vs discards, baseline → final score
+- List all commits added to main (one per winning experiment)
+- Show: `git log --oneline -N` where N = number of wins
+- Remind user: "Review with `git log --oneline` and `git diff HEAD~N` before pushing."
