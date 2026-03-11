@@ -261,7 +261,7 @@ You always review and push — the loop never commits or pushes on your behalf.
 ## Plugin structure
 
 ```
-autoimprove-plugin/
+autoimprove/
 ├── .claude-plugin/
 │   └── plugin.json          # Plugin manifest
 ├── skills/
@@ -277,7 +277,7 @@ autoimprove-plugin/
 │       └── SKILL.md         # Emergency cleanup of all experiment worktrees
 └── commands/
     ├── setup.md             # /autoimprove:setup
-    ├── improve.md           # /autoimprove:improve [N]
+    ├── improve.md           # /autoimprove:improve [N] ["focus"]
     ├── measure.md           # /autoimprove:measure
     └── status.md            # /autoimprove:status
 ```
