@@ -1,0 +1,26 @@
+{
+  "name": "autoimprove",
+  "owner": {
+    "name": "Ben Marte",
+    "email": "benmarte@gmail.com"
+  },
+  "metadata": {
+    "description": "Autonomous codebase improvement loop for Claude Code using isolated git worktrees.",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "autoimprove",
+      "source": "./",
+      "description": "Language-agnostic autonomous codebase improvement loop using isolated git worktrees. Every experiment runs on its own branch — main is never touched until a winning change is merged.",
+      "category": "development",
+      "tags": [
+        "autoimprove",
+        "code-quality",
+        "autonomous",
+        "worktrees",
+        "improvement-loop"
+      ]
+    }
+  ]
+}

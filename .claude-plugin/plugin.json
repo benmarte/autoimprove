@@ -1,8 +1,7 @@
 {
   "name": "autoimprove",
-  "version": "2.1.0",
   "description": "Language-agnostic autonomous codebase improvement loop using isolated git worktrees. Every experiment runs on its own branch — main is never touched until a winning change is merged. Works with any language or framework.",
-  "author": "autoimprove",
-  "skills": ["detect-stack", "worktree", "improve-loop", "measure", "rollback"],
-  "commands": ["setup", "improve", "measure", "status"]
+  "author": {
+    "name": "Ben Marte"
+  }
 }
