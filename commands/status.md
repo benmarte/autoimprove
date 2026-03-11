@@ -1,5 +1,5 @@
 ---
-description: Show a summary of all autoimprove iterations run so far by reading autoimprove-log.md. Shows wins, discards, score trend, and top improvements made.
+description: Show summary of all autoimprove iterations from the log
 ---
 
 Read `autoimprove-log.md` from the project root.

@@ -1,6 +1,6 @@
 ---
-description: "Start the autonomous improvement loop using isolated git worktrees. Runs N iterations (default 5). Each experiment runs on its own branch — the main codebase is never touched until a winning change is merged. Pass a number and/or a quoted focus string, e.g. /autoimprove:improve 10 \"Fix all any types\""
-arguments: optional number of iterations (default: 5), optional quoted focus string
+description: Start the autonomous improvement loop using isolated git worktrees
+argument-hint: "[N] [\"focus string\"]"
 ---
 
 Parse $ARGUMENTS:
