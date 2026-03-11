@@ -45,12 +45,12 @@ propose → measure BEFORE → implement → measure AFTER → keep ✅ or disca
 /autoimprove:improve 10 "Replace all any types with proper interfaces"
 
 # 4. Review in the morning
-cat autoimprove-log.md
+cat .claude/autoimprove/log.md
 git log --oneline   # one commit per winning experiment
 git show HEAD       # inspect the latest win
 ```
 
-That's it. No config required upfront — `/autoimprove:setup` fingerprints your project and writes `autoimprove.config.md` automatically.
+That's it. No config required upfront — `/autoimprove:setup` fingerprints your project and writes `.claude/autoimprove/config.md` automatically.
 
 ---
 
@@ -65,7 +65,7 @@ That's it. No config required upfront — `/autoimprove:setup` fingerprints your
 - Type checker (`tsc`, `mypy`, `pyright`, etc.)
 - Linter (`eslint`, `ruff`, `golangci-lint`, `rubocop`, etc.)
 
-It writes an `autoimprove.config.md` file in your project root — a plain Markdown config that maps your specific tools to a **0–100 composite quality score**. You can edit this file to customise the loop for your project.
+It writes an `.claude/autoimprove/config.md` file in your project root — a plain Markdown config that maps your specific tools to a **0–100 composite quality score**. You can edit this file to customise the loop for your project.
 
 ### 2. Isolated experiments via git worktrees
 
@@ -73,7 +73,7 @@ Every experiment runs in a **separate git worktree** — its own directory, its 
 
 ```
 your-project/              ← main branch (never touched during experiments)
-.autoimprove-wt/           ← gitignored, auto-created
+.claude/autoimprove/worktrees/           ← gitignored, auto-created
   experiment-001/          ← branch: autoimprove/experiment-001
   experiment-002/          ← branch: autoimprove/experiment-002
   experiment-003/          ← branch: autoimprove/experiment-003
@@ -110,11 +110,11 @@ Each iteration:
 5. **Measures** again (AFTER)
 6. **Keeps** — squash-merges to main and deletes the worktree — if AFTER ≥ BEFORE
 7. **Discards** — deletes the worktree and branch, main untouched — if AFTER < BEFORE
-8. **Logs** the result to `autoimprove-log.md`
+8. **Logs** the result to `.claude/autoimprove/log.md`
 
 ### 5. The log
 
-After each iteration, `autoimprove-log.md` gets an entry like:
+After each iteration, `.claude/autoimprove/log.md` gets an entry like:
 
 ```
 ## Iteration 4 — 2026-03-11 02:14
@@ -133,10 +133,10 @@ After each iteration, `autoimprove-log.md` gets an entry like:
 
 | Command | Description |
 |---|---|
-| `/autoimprove:setup` | Detect stack, generate `autoimprove.config.md`, show baseline score |
+| `/autoimprove:setup` | Detect stack, generate `.claude/autoimprove/config.md`, show baseline score |
 | `/autoimprove:improve [N] ["focus"]` | Run N iterations of the loop (default: 5), optionally focused on a specific task |
 | `/autoimprove:measure` | Check current score without making any changes |
-| `/autoimprove:status` | Show a summary of all runs from `autoimprove-log.md` |
+| `/autoimprove:status` | Show a summary of all runs from `.claude/autoimprove/log.md` |
 
 ---
 
@@ -156,13 +156,13 @@ After each iteration, `autoimprove-log.md` gets an entry like:
 | **Swift** | `swift build` | `swift build` | `swift test` | swiftlint |
 | **Any Makefile project** | `make check` / `make typecheck` | `make build` | `make test` | `make lint` |
 
-Don't see your stack? Edit `autoimprove.config.md` after setup to add your own commands.
+Don't see your stack? Edit `.claude/autoimprove/config.md` after setup to add your own commands.
 
 ---
 
-## Customising autoimprove.config.md
+## Customising .claude/autoimprove/config.md
 
-After running `/autoimprove:setup`, edit the generated `autoimprove.config.md` to tailor the loop to your project:
+After running `/autoimprove:setup`, edit the generated `.claude/autoimprove/config.md` to tailor the loop to your project:
 
 ```markdown
 ## Improvement Areas
@@ -201,11 +201,11 @@ You can focus the loop on a specific task **directly from the command** — no c
 
 When a focus string is provided, **every iteration targets that task**. The loop breaks it into file-by-file sub-tasks and chips away one per iteration until the focus is fully addressed or iterations run out.
 
-Without a focus string, the loop rotates through all areas listed in your `autoimprove.config.md` as usual.
+Without a focus string, the loop rotates through all areas listed in your `.claude/autoimprove/config.md` as usual.
 
 ### Alternative: edit the config
 
-For recurring focus areas, you can also edit the `Improvement Areas` section in `autoimprove.config.md` directly:
+For recurring focus areas, you can also edit the `Improvement Areas` section in `.claude/autoimprove/config.md` directly:
 
 ```markdown
 ## Improvement Areas
@@ -266,7 +266,7 @@ autoimprove/
 │   └── plugin.json          # Plugin manifest
 ├── skills/
 │   ├── detect-stack/
-│   │   └── SKILL.md         # Fingerprints project, writes autoimprove.config.md
+│   │   └── SKILL.md         # Fingerprints project, writes .claude/autoimprove/config.md
 │   ├── worktree/
 │   │   └── SKILL.md         # Creates/manages/cleans up git worktrees per experiment
 │   ├── improve-loop/
@@ -327,7 +327,7 @@ See [`autoimprove-log.example.md`](autoimprove-log.example.md) for the full 10-i
 PRs welcome! Especially:
 - New language profiles in `detect-stack/SKILL.md`
 - Better improvement area prompts for specific frameworks
-- Example `autoimprove.config.md` files for common stacks
+- Example `.claude/autoimprove/config.md` files for common stacks
 
 ---
 

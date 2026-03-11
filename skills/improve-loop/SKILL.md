@@ -1,5 +1,5 @@
 ---
-description: Autonomous improvement loop for any codebase. Uses git worktrees to run every experiment in isolation — the main branch is never touched until a winning change is explicitly merged. Reads autoimprove.config.md for the measurement suite, then iterates: create worktree → propose → implement in worktree → measure → merge if improved, delete if not → log → repeat.
+description: Autonomous improvement loop for any codebase. Uses git worktrees to run every experiment in isolation — the main branch is never touched until a winning change is explicitly merged. Reads .claude/autoimprove/config.md for the measurement suite, then iterates: create worktree → propose → implement in worktree → measure → merge if improved, delete if not → log → repeat.
 ---
 
 # AutoImprove Loop Skill
@@ -19,11 +19,11 @@ Main branch ──────────────────────�
 
 Before the first iteration:
 
-1. Check `autoimprove.config.md` exists. If not, stop: "Run /autoimprove:setup first."
+1. Check `.claude/autoimprove/config.md` exists. If not, stop: "Run /autoimprove:setup first."
 2. Check git is available: `git status`
 3. Confirm main working tree is clean. If not, stop: "Please commit or stash changes before running autoimprove."
 4. Record the base commit: `git rev-parse HEAD` — all experiments branch from here.
-5. Run the worktree skill's **setup** step to create `.autoimprove-wt/` and update `.gitignore`.
+5. Run the worktree skill's **setup** step to create `.claude/autoimprove/worktrees/` and update `.gitignore`.
 6. Run the measure skill in the **main directory** to get the BASELINE score.
 7. Report: "Baseline: XX/100. All experiments will run in isolated worktrees. Main branch is safe."
 
@@ -38,17 +38,17 @@ Use the worktree skill to create a new isolated branch and directory:
 ```bash
 EXPERIMENT_ID=$(printf "%03d" $N)
 git worktree add -b "autoimprove/experiment-$EXPERIMENT_ID" \
-  ".autoimprove-wt/experiment-$EXPERIMENT_ID"
+  ".claude/autoimprove/worktrees/experiment-$EXPERIMENT_ID"
 ```
 
-All work for this iteration happens inside `.autoimprove-wt/experiment-$EXPERIMENT_ID/`.
+All work for this iteration happens inside `.claude/autoimprove/worktrees/experiment-$EXPERIMENT_ID/`.
 The main directory is not touched.
 
 ### Step 2 — PROPOSE
 
 **If a FOCUS string was provided:** Every iteration targets that specific focus. Break the focus into file-by-file or function-by-function sub-tasks and tackle one per iteration. Do not rotate to other areas — stay on the focus until all iterations are used or the focus is fully addressed.
 
-**If no FOCUS was provided:** Choose one focused improvement from the **Improvement Areas** in `autoimprove.config.md`. Rotate areas — don't repeat an area that failed last time.
+**If no FOCUS was provided:** Choose one focused improvement from the **Improvement Areas** in `.claude/autoimprove/config.md`. Rotate areas — don't repeat an area that failed last time.
 
 State the hypothesis explicitly:
 > "I will [specific change] in [file(s)] because I expect [metric] to improve by ~[X] points."
@@ -57,8 +57,8 @@ State the hypothesis explicitly:
 
 Measure from inside the worktree directory (same commands, different cwd):
 ```bash
-cd .autoimprove-wt/experiment-$EXPERIMENT_ID
-# run measurement suite from autoimprove.config.md
+cd .claude/autoimprove/worktrees/experiment-$EXPERIMENT_ID
+# run measurement suite from .claude/autoimprove/config.md
 ```
 Record as **BEFORE**.
 
@@ -68,7 +68,7 @@ Make the change inside the worktree. The main directory is untouched.
 Commit the change to the experiment branch:
 
 ```bash
-cd .autoimprove-wt/experiment-$EXPERIMENT_ID
+cd .claude/autoimprove/worktrees/experiment-$EXPERIMENT_ID
 git add -A
 git commit -m "experiment($EXPERIMENT_ID): $HYPOTHESIS_ONE_LINE"
 ```
@@ -92,7 +92,7 @@ Score: $BEFORE → $AFTER (+$DELTA pts)
 Files changed: $FILES"
 
 # Clean up
-git worktree remove ".autoimprove-wt/experiment-$EXPERIMENT_ID"
+git worktree remove ".claude/autoimprove/worktrees/experiment-$EXPERIMENT_ID"
 git branch -D "autoimprove/experiment-$EXPERIMENT_ID"
 ```
 
@@ -104,14 +104,14 @@ Same merge process as above if keeping, discard process if not.
 
 Main branch is already untouched. Just delete the worktree:
 ```bash
-git worktree remove ".autoimprove-wt/experiment-$EXPERIMENT_ID" --force
+git worktree remove ".claude/autoimprove/worktrees/experiment-$EXPERIMENT_ID" --force
 git branch -D "autoimprove/experiment-$EXPERIMENT_ID"
 ```
 No rollback needed — there was nothing to roll back.
 
 ### Step 7 — LOG
 
-Append to `autoimprove-log.md` in the **main** directory:
+Append to `.claude/autoimprove/log.md` in the **main** directory:
 
 ```
 ## Iteration N — [timestamp]
@@ -134,11 +134,11 @@ After all iterations (or if the user stops early):
 
 ```bash
 # Remove any remaining experiment worktrees
-for wt in .autoimprove-wt/experiment-*; do
+for wt in .claude/autoimprove/worktrees/experiment-*; do
   git worktree remove "$wt" --force 2>/dev/null
 done
 git branch | grep "autoimprove/experiment" | xargs git branch -D 2>/dev/null
-rm -rf .autoimprove-wt
+rm -rf .claude/autoimprove/worktrees
 ```
 
 Report: final score, iterations run, wins vs discards, list of merged commits.
@@ -147,7 +147,7 @@ Report: final score, iterations run, wins vs discards, list of merged commits.
 
 ## Universal Improvement Areas
 
-Rotate through these (add language-specific ones from `autoimprove.config.md`):
+Rotate through these (add language-specific ones from `.claude/autoimprove/config.md`):
 
 - **Type safety** — fix type errors, replace `any`/`interface{}`/untyped constructs
 - **Error handling** — unhandled promises, bare `catch {}`, swallowed errors

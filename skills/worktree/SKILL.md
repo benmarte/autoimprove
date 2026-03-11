@@ -8,7 +8,7 @@ Every autoimprove experiment runs in an isolated git worktree — a separate dir
 
 ```
 your-project/          ← main worktree (never touched during experiments)
-.autoimprove-wt/       ← experiment worktrees live here
+.claude/autoimprove/worktrees/       ← experiment worktrees live here
   experiment-001/      ← branch: autoimprove/experiment-001
   experiment-002/      ← branch: autoimprove/experiment-002
 ```
@@ -25,10 +25,10 @@ git status
 git branch --show-current
 
 # 2. Create the worktree container directory (gitignored)
-mkdir -p .autoimprove-wt
+mkdir -p .claude/autoimprove/worktrees
 
 # 3. Add it to .gitignore if not already there
-grep -q ".autoimprove-wt" .gitignore 2>/dev/null || echo ".autoimprove-wt" >> .gitignore
+grep -q ".claude/autoimprove/worktrees" .gitignore 2>/dev/null || echo ".claude/autoimprove/worktrees" >> .gitignore
 
 # 4. Record the base commit so all experiments branch from the same point
 BASE_COMMIT=$(git rev-parse HEAD)
@@ -44,7 +44,7 @@ Run at the start of each iteration:
 ```bash
 EXPERIMENT_ID=$(printf "%03d" $ITERATION_NUMBER)
 BRANCH="autoimprove/experiment-$EXPERIMENT_ID"
-WORKTREE_PATH=".autoimprove-wt/experiment-$EXPERIMENT_ID"
+WORKTREE_PATH=".claude/autoimprove/worktrees/experiment-$EXPERIMENT_ID"
 
 # Create a new branch and worktree from current HEAD
 git worktree add -b "$BRANCH" "$WORKTREE_PATH"
@@ -62,9 +62,9 @@ Now switch all subsequent file edits and commands to run inside `$WORKTREE_PATH`
 All measurement commands must be run from inside the worktree path:
 
 ```bash
-cd .autoimprove-wt/experiment-$EXPERIMENT_ID
+cd .claude/autoimprove/worktrees/experiment-$EXPERIMENT_ID
 
-# Run the measurement suite from autoimprove.config.md
+# Run the measurement suite from .claude/autoimprove/config.md
 # (same commands, different working directory)
 ```
 
@@ -85,7 +85,7 @@ Score: $BEFORE_SCORE → $AFTER_SCORE (+$DELTA pts)
 Files: $CHANGED_FILES"
 
 # Remove the worktree and branch
-git worktree remove ".autoimprove-wt/experiment-$EXPERIMENT_ID"
+git worktree remove ".claude/autoimprove/worktrees/experiment-$EXPERIMENT_ID"
 git branch -D "$BRANCH"
 
 echo "✅ Experiment $EXPERIMENT_ID merged to main"
@@ -99,7 +99,7 @@ If AFTER score <= BEFORE score:
 
 ```bash
 # Just remove the worktree and delete the branch — main is untouched
-git worktree remove ".autoimprove-wt/experiment-$EXPERIMENT_ID" --force
+git worktree remove ".claude/autoimprove/worktrees/experiment-$EXPERIMENT_ID" --force
 git branch -D "autoimprove/experiment-$EXPERIMENT_ID"
 
 echo "❌ Experiment $EXPERIMENT_ID discarded — no changes to main"
@@ -116,7 +116,7 @@ Run after the session completes or if something goes wrong:
 git worktree list | grep autoimprove
 
 # Remove all experiment worktrees
-for wt in .autoimprove-wt/experiment-*; do
+for wt in .claude/autoimprove/worktrees/experiment-*; do
   git worktree remove "$wt" --force 2>/dev/null
 done
 
@@ -124,7 +124,7 @@ done
 git branch | grep "autoimprove/experiment" | xargs git branch -D 2>/dev/null
 
 # Remove the container directory
-rm -rf .autoimprove-wt
+rm -rf .claude/autoimprove/worktrees
 
 echo "All experiment worktrees cleaned up"
 ```
@@ -143,7 +143,7 @@ git worktree prune
 git worktree list
 
 # Force remove a specific one
-git worktree remove .autoimprove-wt/experiment-001 --force
+git worktree remove .claude/autoimprove/worktrees/experiment-001 --force
 git branch -D autoimprove/experiment-001
 ```
 

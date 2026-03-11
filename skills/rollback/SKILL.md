@@ -16,7 +16,7 @@ echo "=== Experiment branches ==="
 git branch | grep "autoimprove/experiment"
 
 echo "=== Worktree directory ==="
-ls .autoimprove-wt/ 2>/dev/null || echo "(empty or missing)"
+ls .claude/autoimprove/worktrees/ 2>/dev/null || echo "(empty or missing)"
 ```
 
 Show the user what will be removed and confirm before proceeding.
@@ -25,7 +25,7 @@ Show the user what will be removed and confirm before proceeding.
 
 ```bash
 # Remove worktrees
-for wt in .autoimprove-wt/experiment-*; do
+for wt in .claude/autoimprove/worktrees/experiment-*; do
   [ -d "$wt" ] && git worktree remove "$wt" --force && echo "Removed worktree: $wt"
 done
 
@@ -43,8 +43,8 @@ echo "Experiment branches deleted"
 ## Step 4 — Remove the container directory
 
 ```bash
-rm -rf .autoimprove-wt
-echo "Cleaned up .autoimprove-wt/"
+rm -rf .claude/autoimprove/worktrees
+echo "Cleaned up .claude/autoimprove/worktrees/"
 ```
 
 ## Step 5 — Verify clean state

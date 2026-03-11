@@ -2,7 +2,7 @@
 description: Show summary of all autoimprove iterations from the log
 ---
 
-Read `autoimprove-log.md` from the project root.
+Read `.claude/autoimprove/log.md` from the project root.
 
 If the file doesn't exist, say: "No autoimprove runs yet. Use /autoimprove:improve to start."
 

@@ -1,5 +1,5 @@
 ---
-description: Run the full measurement suite defined in autoimprove.config.md and report the current codebase quality score (0-100). Use this to check your baseline before running the improve loop, or to spot-check at any time.
+description: Run the full measurement suite defined in .claude/autoimprove/config.md and report the current codebase quality score (0-100). Use this to check your baseline before running the improve loop, or to spot-check at any time.
 ---
 
 # Measure Skill
@@ -8,7 +8,7 @@ Run the project's quality measurement suite and report the composite score.
 
 ## Steps
 
-1. Read `autoimprove.config.md`. If it doesn't exist, say: "Run /autoimprove:setup first."
+1. Read `.claude/autoimprove/config.md`. If it doesn't exist, say: "Run /autoimprove:setup first."
 
 2. Run each command defined in the config's measurement sections, in order:
    - Type check / compile
