@@ -46,8 +46,9 @@ The main directory is not touched.
 
 ### Step 2 — PROPOSE
 
-Choose one focused improvement from the **Improvement Areas** in `autoimprove.config.md`.
-Rotate areas — don't repeat an area that failed last time.
+**If a FOCUS string was provided:** Every iteration targets that specific focus. Break the focus into file-by-file or function-by-function sub-tasks and tackle one per iteration. Do not rotate to other areas — stay on the focus until all iterations are used or the focus is fully addressed.
+
+**If no FOCUS was provided:** Choose one focused improvement from the **Improvement Areas** in `autoimprove.config.md`. Rotate areas — don't repeat an area that failed last time.
 
 State the hypothesis explicitly:
 > "I will [specific change] in [file(s)] because I expect [metric] to improve by ~[X] points."

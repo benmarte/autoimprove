@@ -40,6 +40,9 @@ claude plugin install https://github.com/benmarte/autoimprove
 # 3. Run the improvement loop (e.g. overnight)
 /autoimprove:improve 20
 
+# Or focus on a specific task
+/autoimprove:improve 10 "Replace all any types with proper interfaces"
+
 # 4. Review in the morning
 cat autoimprove-log.md
 git log --oneline   # one commit per winning experiment
@@ -130,7 +133,7 @@ After each iteration, `autoimprove-log.md` gets an entry like:
 | Command | Description |
 |---|---|
 | `/autoimprove:setup` | Detect stack, generate `autoimprove.config.md`, show baseline score |
-| `/autoimprove:improve [N]` | Run N iterations of the loop (default: 5) |
+| `/autoimprove:improve [N] ["focus"]` | Run N iterations of the loop (default: 5), optionally focused on a specific task |
 | `/autoimprove:measure` | Check current score without making any changes |
 | `/autoimprove:status` | Show a summary of all runs from `autoimprove-log.md` |
 
@@ -174,6 +177,48 @@ After running `/autoimprove:setup`, edit the generated `autoimprove.config.md` t
 ```
 
 You can also override any auto-detected command, change scoring weights, or add custom shell commands as additional metrics.
+
+---
+
+## Focused improvements
+
+You can focus the loop on a specific task **directly from the command** — no config editing needed. Just pass a quoted string:
+
+```bash
+# Focus on type safety
+/autoimprove:improve 10 "Replace all any types with proper TypeScript interfaces"
+
+# Focus on a specific directory
+/autoimprove:improve 5 "Fix all lint warnings in src/components/dashboard/"
+
+# Focus on tests
+/autoimprove:improve 10 "Add unit tests for every exported function in lib/billing/"
+
+# Focus on a migration
+/autoimprove:improve 20 "Replace all raw fetch() calls with the apiClient wrapper from lib/api-client.ts"
+```
+
+When a focus string is provided, **every iteration targets that task**. The loop breaks it into file-by-file sub-tasks and chips away one per iteration until the focus is fully addressed or iterations run out.
+
+Without a focus string, the loop rotates through all areas listed in your `autoimprove.config.md` as usual.
+
+### Alternative: edit the config
+
+For recurring focus areas, you can also edit the `Improvement Areas` section in `autoimprove.config.md` directly:
+
+```markdown
+## Improvement Areas
+- Replace every `any` type with a proper TypeScript interface or type alias
+```
+
+This is useful when you want the focus to persist across multiple sessions without re-typing it.
+
+### Tips for focused runs
+
+- **Be specific.** `"Fix type errors"` is vague. `"Replace any with proper types in convex/ mutations"` gives the loop a clear target.
+- **One concern at a time** works best. The loop makes surgical 1–3 file changes per iteration — a narrow focus means every iteration chips away at the same problem.
+- **Match iteration count to scope.** If you have ~20 files to fix, run `/autoimprove:improve 20 "..."` so each iteration can tackle one file.
+- **Use "Files to Never Modify"** in the config to protect areas you don't want touched during a focused run.
 
 ---
 
