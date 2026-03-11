@@ -31,8 +31,8 @@ propose → measure BEFORE → implement → measure AFTER → keep ✅ or disca
 ## Quick start
 
 ```bash
-# 1. Install the plugin (from your project root in Claude Code)
-claude plugin install ./autoimprove-plugin
+# 1. Install the plugin from GitHub
+claude plugin install https://github.com/benmarte/autoimprove
 
 # 2. Auto-detect your stack and get a baseline score
 /autoimprove:setup
