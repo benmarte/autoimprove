@@ -26,6 +26,11 @@ Give Claude Code your project, run `/autoimprove:improve`, and let it iterate au
 propose → measure BEFORE → implement → measure AFTER → keep ✅ or discard ❌ → log → repeat
 ```
 
+<div align="center">
+<img src="autoimprove.png" alt="autoimprove session showing 5 iterations with 3 wins, score going from 50 to 59" width="100%">
+<br><em>A real autoimprove session: 5 iterations, 3 wins, score 50 → 59 (+9 pts) in under 6 minutes</em>
+</div>
+
 ---
 
 ## Quick start
