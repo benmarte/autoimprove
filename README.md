@@ -31,8 +31,9 @@ propose → measure BEFORE → implement → measure AFTER → keep ✅ or disca
 ## Quick start
 
 ```bash
-# 1. Install the plugin from GitHub
-claude plugin install https://github.com/benmarte/autoimprove
+# 1. Add the marketplace and install the plugin
+/plugin marketplace add benmarte/autoimprove
+/plugin install autoimprove@autoimprove
 
 # 2. Auto-detect your stack and get a baseline score
 /autoimprove:setup
