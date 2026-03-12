@@ -57,6 +57,21 @@ git show HEAD       # inspect the latest win
 
 That's it. No config required upfront — `/autoimprove:setup` fingerprints your project and writes `.claude/autoimprove/config.md` automatically.
 
+### Auto-update check
+
+autoimprove checks for new releases once per day on session start. If an update is available, you'll see:
+
+```
+Update available: v1.0.0 → v1.1.0
+Run /autoimprove:upgrade to update.
+```
+
+The check is lightweight (single GitHub API call, 3s timeout, cached for 24 hours) and never blocks startup. To upgrade manually:
+
+```bash
+/autoimprove:upgrade
+```
+
 ---
 
 ## How it works
@@ -142,6 +157,7 @@ After each iteration, `.claude/autoimprove/log.md` gets an entry like:
 | `/autoimprove:improve [N] ["focus"]` | Run N iterations of the loop (default: 5), optionally focused on a specific task |
 | `/autoimprove:measure` | Check current score without making any changes |
 | `/autoimprove:status` | Show a summary of all runs from `.claude/autoimprove/log.md` |
+| `/autoimprove:upgrade` | Check for and install the latest version |
 
 ---
 
@@ -268,7 +284,11 @@ You always review and push — the loop never commits or pushes on your behalf.
 ```
 autoimprove/
 ├── .claude-plugin/
-│   └── plugin.json          # Plugin manifest
+│   ├── plugin.json          # Plugin manifest
+│   └── hooks/
+│       └── hooks.json       # SessionStart hook registration
+├── hooks/
+│   └── sessionstart.sh      # update check on startup (once per day)
 ├── skills/
 │   ├── detect-stack/
 │   │   └── SKILL.md         # Fingerprints project, writes .claude/autoimprove/config.md
@@ -284,7 +304,8 @@ autoimprove/
     ├── setup.md             # /autoimprove:setup
     ├── improve.md           # /autoimprove:improve [N] ["focus"]
     ├── measure.md           # /autoimprove:measure
-    └── status.md            # /autoimprove:status
+    ├── status.md            # /autoimprove:status
+    └── upgrade.md           # /autoimprove:upgrade (check for updates)
 ```
 
 ---

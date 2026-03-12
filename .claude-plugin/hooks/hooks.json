@@ -1,0 +1,15 @@
+{
+  "description": "autoimprove hooks — SessionStart update check",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/sessionstart.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
