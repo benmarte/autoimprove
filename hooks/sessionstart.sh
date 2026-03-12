@@ -40,6 +40,9 @@ fi
 
 # Compare versions
 if [[ "$CURRENT_VERSION" != "$LATEST_VERSION" ]]; then
+  # stderr → shown directly to user in status line
+  echo "⬆ autoimprove update available: v${CURRENT_VERSION} → v${LATEST_VERSION}. Run /autoimprove:upgrade" >&2
+  # additionalContext → Claude also knows and can remind user
   cat <<EOF
 {
   "additionalContext": "<autoimprove_update>\n  Update available: v${CURRENT_VERSION} → v${LATEST_VERSION}\n  Run /autoimprove:upgrade to update.\n</autoimprove_update>"
