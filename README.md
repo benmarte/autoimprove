@@ -91,7 +91,7 @@ After this, `/autoimprove:upgrade` will be available for all future updates.
 autoimprove checks for new releases once per day on session start. If an update is available, you'll see:
 
 ```
-Update available: v1.0.0 → v1.1.0
+Update available: v1.1.0 → v1.2.0
 Run /autoimprove:upgrade to update.
 ```
 
@@ -146,7 +146,19 @@ If a metric doesn't apply (no tests yet, no linter configured), its weight is re
 
 ### 4. The loop
 
-Each iteration:
+Each iteration prints visible progress so you always know what's happening:
+
+```
+━━━ Iteration 1/5 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔬 PROPOSE: Targeting error handling in src/api/client.ts
+🔬 SNAPSHOT: Measuring BEFORE score...
+🔬 IMPLEMENT: Adding try/catch to unhandled async calls
+🔬 MEASURE: Measuring AFTER score...
+🔬 DECIDE: 85 → 89 (+4 pts) — KEPT ✅
+🔬 LOG: Recorded to .claude/autoimprove/log.md
+```
+
+Steps per iteration:
 
 1. **Creates** a fresh git worktree + branch (`autoimprove/experiment-NNN`)
 2. **Proposes** one bounded improvement with an explicit hypothesis — *"I will fix the three unhandled promise rejections in `api/invoices.ts` because I expect it to reduce TypeScript errors and improve the type score by ~8 points"*
@@ -365,8 +377,14 @@ Here's what a real overnight session looks like. This is from a Next.js + Convex
 **Decision:** KEPT ✅
 **Reason:** 2 new tests passing, covers basic and edge-case tax bracket logic
 
-## Session Summary
-Score: 61 → 84 (+23 pts) · Kept: 9 · Discarded: 1 · Duration: ~75 min
+━━━ Session Complete ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 Score: 61 → 84 (+23 pts)
+🔁 Iterations: 10 total — 9 kept ✅, 1 discarded ❌
+📝 Merged commits:
+   • abc1234 autoimprove(001): Replace 4 implicit any types
+   • def5678 autoimprove(002): Add error boundaries
+   • ...
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
 See [`autoimprove-log.example.md`](autoimprove-log.example.md) for the full 10-iteration session with summary table.
