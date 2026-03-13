@@ -15,12 +15,17 @@ Start the autoimprove loop for the parsed iteration count.
 2. Confirm git working tree is clean. If not, stop: "Please commit or stash changes first."
 3. Run worktree setup (create `.claude/autoimprove/worktrees/`, update `.gitignore`).
 4. Run measure skill in the main directory — record as BASELINE.
-5. Tell the user:
-   > "Starting autoimprove — N iterations. Baseline: XX/100.
-   > **Focus: [focus string]** (or "all improvement areas" if no focus given)
-   > Each experiment runs in an isolated git worktree.
-   > Your main branch will not be modified until a winning change is confirmed.
-   > Logging all results to .claude/autoimprove/log.md."
+5. Print the pre-flight summary with progress indicators:
+   ```
+   ━━━ Pre-flight ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   ✓ Config found
+   ✓ Git working tree clean
+   ✓ Worktree directory ready
+   ✓ Baseline score: XX/100
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   Starting N iterations. Focus: [focus or "all improvement areas"]
+   Main branch is safe — experiments run in isolated worktrees.
+   ```
 
 **Run the improve-loop skill** for the requested number of iterations, passing the FOCUS string if one was provided.
 

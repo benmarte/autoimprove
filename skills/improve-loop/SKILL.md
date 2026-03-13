@@ -17,7 +17,17 @@ Main branch ──────────────────────�
 
 ## Pre-flight checks
 
-Before the first iteration:
+Before the first iteration, print each check as you run it:
+
+```
+━━━ Pre-flight ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✓ Config found
+✓ Git working tree clean
+✓ Base commit: abc1234
+✓ Worktree directory ready
+✓ Baseline score: XX/100
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
 
 1. Check `.claude/autoimprove/config.md` exists. If not, stop: "Run /autoimprove:setup first."
 2. Check git is available: `git status`
@@ -26,6 +36,30 @@ Before the first iteration:
 5. Run the worktree skill's **setup** step to create `.claude/autoimprove/worktrees/` and update `.gitignore`.
 6. Run the measure skill in the **main directory** to get the BASELINE score.
 7. Report: "Baseline: XX/100. All experiments will run in isolated worktrees. Main branch is safe."
+
+---
+
+## Progress Updates
+
+**CRITICAL:** At the start of every step, you MUST output a visible progress line to the user. Do not silently run tools — always print status first. Use this format:
+
+```
+━━━ Iteration N/TOTAL ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔬 STEP_NAME: brief description of what's happening
+```
+
+Example progress lines:
+```
+━━━ Iteration 1/5 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔬 PROPOSE: Targeting error handling in src/api/client.ts
+🔬 SNAPSHOT: Measuring BEFORE score...
+🔬 IMPLEMENT: Adding try/catch to unhandled async calls
+🔬 MEASURE: Measuring AFTER score...
+🔬 DECIDE: 85 → 89 (+4 pts) — KEPT ✅
+🔬 LOG: Recorded to .claude/autoimprove/log.md
+```
+
+Never run more than one step without printing a progress line. The user must always know what iteration you're on and what phase you're in.
 
 ---
 
@@ -141,7 +175,17 @@ git branch | grep "autoimprove/experiment" | xargs git branch -D 2>/dev/null
 rm -rf .claude/autoimprove/worktrees
 ```
 
-Report: final score, iterations run, wins vs discards, list of merged commits.
+Print a final summary table:
+
+```
+━━━ Session Complete ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 Score: BASELINE → FINAL (+/- DELTA)
+🔁 Iterations: N total — X kept ✅, Y discarded ❌
+📝 Merged commits:
+   • abc1234 autoimprove(001): description
+   • def5678 autoimprove(003): description
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
 
 ---
 
