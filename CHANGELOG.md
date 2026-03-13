@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+- `/autoimprove:continue` command to resume interrupted sessions
+- Session headers in log with planned count, focus, baseline, base commit, and status tracking
+- Interrupted session detection in `/autoimprove:status` with resume hint
+
+### Changed
+- Improve-loop now writes and updates session headers in the log
+- Log format extended with structured session metadata (backwards-compatible with legacy logs)
+
 ## [1.2.0] - 2026-03-13
 
 ### Added
