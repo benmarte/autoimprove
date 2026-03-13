@@ -27,7 +27,7 @@ Start the autoimprove loop for the parsed iteration count.
    Main branch is safe — experiments run in isolated worktrees.
    ```
 
-**Run the improve-loop skill** for the requested number of iterations, passing the FOCUS string if one was provided.
+**Run the improve-loop skill** for the requested number of iterations, passing the FOCUS string if one was provided. Pass `session_mode: new` so it creates a fresh session header in the log.
 
 **After all iterations — session summary:**
 - Clean up all remaining worktrees (worktree skill cleanup step)
