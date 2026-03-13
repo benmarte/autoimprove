@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-03-13
+
 ### Added
 - `/autoimprove:audit` command — scan codebase for deficiencies with prioritized fix plan
 - Audit report with score breakdown, progress bars, efficiency ranking, and token usage estimates
@@ -23,6 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Removed
 - `/autoimprove:measure` command (subsumed by `/autoimprove:audit` — measure skill kept as internal utility)
+- Empty `{.claude-plugin,skills,commands}` directory (accidental artifact)
+- Development docs (`docs/`) from git tracking (added to `.gitignore`)
 
 ## [1.2.0] - 2026-03-13
 
@@ -59,6 +63,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Focused improvements via quoted string argument
 - Safety rules: never modifies lock files, secrets, generated code, or deploys
 
+[1.3.0]: https://github.com/benmarte/autoimprove/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/benmarte/autoimprove/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/benmarte/autoimprove/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/benmarte/autoimprove/releases/tag/v1.0.0

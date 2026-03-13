@@ -4,5 +4,8 @@
 # Claude Code local settings
 .claude/settings.local.json
 
+# Development docs (plans, specs)
+docs/
+
 # OS files
 .DS_Store

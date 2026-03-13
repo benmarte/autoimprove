@@ -72,7 +72,7 @@ Print the audit report:
 
 The progress bar uses filled blocks (█) and empty blocks (░), scaled to 10 characters per metric.
 
-**If score is 100/100:** Print "Your codebase scores 100/100. Nothing to improve." and stop.
+**If score is 100/100:** Still print the full report (progress bars, efficiency table with all zeroes, and token estimate of ~0K tokens) so the output format is always consistent. After the report, print "Nothing to improve." and stop — do not prompt for the interactive fix loop.
 
 **If build fails:** Show build as #1 priority with a note: "⚠️ Build is failing — other metrics may be unreliable. Fix the build first."
 

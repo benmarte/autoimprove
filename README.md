@@ -95,7 +95,7 @@ After this, `/autoimprove:upgrade` will be available for all future updates.
 autoimprove checks for new releases once per day on session start. If an update is available, you'll see:
 
 ```
-Update available: v1.1.0 → v1.2.0
+Update available: v1.2.0 → v1.3.0
 Run /autoimprove:upgrade to update.
 ```
 
@@ -164,7 +164,7 @@ The audit ranks areas by **efficiency** — points gained per iteration — so y
 
 Setup auto-runs the audit after generating your config, so first-time users see this report immediately.
 
-### 5. The score
+### 4. The score
 
 Every iteration, the loop measures your codebase on four axes:
 
