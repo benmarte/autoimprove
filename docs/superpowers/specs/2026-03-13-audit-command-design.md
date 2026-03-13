@@ -122,6 +122,18 @@ Continue to next area? (Y/n)
 
 This repeats until all areas are maxed or the user stops.
 
+## Setup Auto-runs Audit
+
+After `/autoimprove:setup` generates the config, it automatically runs the audit. This gives first-time users a seamless experience: one command to go from zero to seeing their codebase report and optionally starting fixes.
+
+- `/autoimprove:setup` → detects stack, writes config, then runs audit automatically
+- `/autoimprove:audit` → standalone re-check anytime (does not re-run setup)
+- If config already exists when running setup, ask: "Config already exists. Re-detect stack? (y/N)" to protect user customizations. If they decline, just run the audit with the existing config.
+
+### Changes to setup command
+
+The setup command (`commands/setup.md`) adds one line at the end: after generating the config, invoke the audit skill. The setup skill (`skills/detect-stack/SKILL.md`) is unchanged — it still just detects and writes the config.
+
 ## Removing the Measure Command
 
 The `/autoimprove:measure` command is fully subsumed by audit. The user-facing command (`commands/measure.md`) is removed. The measure skill (`skills/measure/SKILL.md`) is kept as an internal utility used by both the audit skill and the improve-loop.
@@ -133,7 +145,8 @@ The `/autoimprove:measure` command is fully subsumed by audit. The user-facing c
 | `commands/audit.md` | **Add** | New command entry point |
 | `skills/audit/SKILL.md` | **Add** | Audit logic: measure, parse raw output, rank, report, interactive loop |
 | `commands/measure.md` | **Remove** | Subsumed by audit |
-| `README.md` | **Modify** | Add audit command, remove measure command, update commands table |
+| `commands/setup.md` | **Modify** | Add auto-run audit after config generation |
+| `README.md` | **Modify** | Add audit command, remove measure command, update quick start and commands table |
 | `CHANGELOG.md` | **Modify** | Add entry |
 
 ## Edge Cases
