@@ -37,6 +37,7 @@ The report is a hybrid: score breakdown at top, then a prioritized issue list.
   3  Tests         20pts  0/4 covered 7 iterations  2.9 pts/iter
 
   Total: ~11 iterations to reach 100/100
+  ⚡ Estimated token usage: ~250K tokens (rough estimate, actual usage varies)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
@@ -60,6 +61,15 @@ For each area with a gap:
    - These are initial heuristics — they can be refined over time based on actual session log data
 3. Calculate efficiency: `point_gap / estimated_iterations`
 4. Rank by efficiency (highest pts/iteration first)
+
+### Token Usage Estimate
+
+After calculating total iterations, show an estimated token cost:
+- **Per iteration estimate:** ~20-25K tokens (average across typical codebases)
+- **Formula:** `total_iterations × 22K` (using 22K as the midpoint)
+- **Display as a rough estimate** with a disclaimer — actual usage depends on file sizes, complexity, and how many files each iteration touches
+
+This helps users decide whether to start the full fix loop or focus on just one area. The estimate is intentionally conservative (rounds up).
 
 Note: The score breakdown weights (type: 40, build: 20, tests: 30, lint: 10) are read dynamically from `.claude/autoimprove/config.md`, not hardcoded. If a metric is not applicable, its weight is redistributed as the measure skill already handles.
 
