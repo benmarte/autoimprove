@@ -192,6 +192,7 @@ After each iteration, `.claude/autoimprove/log.md` gets an entry like:
 |---|---|
 | `/autoimprove:setup` | Detect stack, generate `.claude/autoimprove/config.md`, show baseline score |
 | `/autoimprove:improve [N] ["focus"]` | Run N iterations of the loop (default: 5), optionally focused on a specific task |
+| `/autoimprove:continue [N] ["focus"]` | Resume an interrupted session — inherits remaining iterations and focus from the log |
 | `/autoimprove:measure` | Check current score without making any changes |
 | `/autoimprove:status` | Show a summary of all runs from `.claude/autoimprove/log.md` |
 | `/autoimprove:upgrade` | Check for and install the latest version |
@@ -281,6 +282,32 @@ This is useful when you want the focus to persist across multiple sessions witho
 
 ---
 
+## Resuming interrupted sessions
+
+If your session gets interrupted (Ctrl+C, context limit, crash), you can pick up where you left off:
+
+```bash
+# Resume with remaining iterations and same focus
+/autoimprove:continue
+
+# Resume but only run 3 more iterations
+/autoimprove:continue 3
+
+# Resume with a different focus
+/autoimprove:continue "New focus area"
+
+# Override both
+/autoimprove:continue 5 "Fix error handling in api/"
+```
+
+The continue command reads `.claude/autoimprove/log.md` to find the interrupted session, inherits its settings, and picks up from the next iteration. Iteration numbering continues seamlessly (e.g., if you completed 4/10, it resumes at 5/10).
+
+If the codebase has changed since the interrupted session (you made manual commits), autoimprove will warn you and re-measure the baseline.
+
+Check `/autoimprove:status` to see if you have an interrupted session to resume.
+
+---
+
 ## What the loop improves
 
 The loop rotates through these universal improvement areas (and adds language-specific ones based on your stack):
@@ -338,6 +365,7 @@ autoimprove/
 │   └── rollback/
 │       └── SKILL.md         # Emergency cleanup of all experiment worktrees
 └── commands/
+    ├── continue.md          # /autoimprove:continue [N] ["focus"]
     ├── setup.md             # /autoimprove:setup
     ├── improve.md           # /autoimprove:improve [N] ["focus"]
     ├── measure.md           # /autoimprove:measure
