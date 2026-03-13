@@ -40,22 +40,26 @@ propose → measure BEFORE → implement → measure AFTER → keep ✅ or disca
 /plugin marketplace add benmarte/autoimprove
 /plugin install autoimprove@autoimprove
 
-# 2. Auto-detect your stack and get a baseline score
+# 2. Auto-detect your stack and see your codebase report
 /autoimprove:setup
 
-# 3. Run the improvement loop (e.g. overnight)
+# 3. The audit shows what's wrong and offers to start fixing
+# Or run the audit anytime for a fresh check
+/autoimprove:audit
+
+# 4. For unattended runs (e.g. overnight), use improve directly
 /autoimprove:improve 20
 
 # Or focus on a specific task
 /autoimprove:improve 10 "Replace all any types with proper interfaces"
 
-# 4. Review in the morning
+# 5. Review in the morning
 cat .claude/autoimprove/log.md
 git log --oneline   # one commit per winning experiment
 git show HEAD       # inspect the latest win
 ```
 
-That's it. No config required upfront — `/autoimprove:setup` fingerprints your project and writes `.claude/autoimprove/config.md` automatically.
+That's it. No config required upfront — `/autoimprove:setup` fingerprints your project, writes `.claude/autoimprove/config.md`, and immediately runs an audit showing your codebase's deficiencies ranked by efficiency.
 
 ### Upgrading
 
@@ -131,7 +135,36 @@ your-project/              ← main branch (never touched during experiments)
 
 No more `git checkout -- .` rollbacks. No risk of a broken experiment corrupting your codebase.
 
-### 3. The score
+### 3. The audit
+
+Before diving into fixes, `/autoimprove:audit` scans your codebase and shows exactly what needs work:
+
+```
+━━━ Codebase Audit ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 Current Score: 61/100
+
+  Type safety:   24/40  ██████░░░░  (16 pts to max)
+  Build:         20/20  ██████████  ✓ maxed
+  Tests:         10/30  ███░░░░░░░  (20 pts to max)
+  Lint:           7/10  ███████░░░  (3 pts to max)
+
+━━━ Fastest Path to 100% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  #  Area          Gap    Issues  Est. iterations  Efficiency
+  1  Type safety   16pts  8 errors   3 iterations   5.3 pts/iter ← best
+  2  Lint           3pts  2 warnings 1 iteration    3.0 pts/iter
+  3  Tests         20pts  0/4 covered 7 iterations  2.9 pts/iter
+
+  Total: ~11 iterations to reach 100/100
+  ⚡ Estimated token usage: ~250K tokens (rough estimate, actual usage varies)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+The audit ranks areas by **efficiency** — points gained per iteration — so you fix the highest-impact issues first. It then offers to start fixing interactively, area by area, or you can run `/autoimprove:improve` directly.
+
+Setup auto-runs the audit after generating your config, so first-time users see this report immediately.
+
+### 5. The score
 
 Every iteration, the loop measures your codebase on four axes:
 
@@ -144,7 +177,7 @@ Every iteration, the loop measures your codebase on four axes:
 
 If a metric doesn't apply (no tests yet, no linter configured), its weight is redistributed across the others.
 
-### 4. The loop
+### 5. The loop
 
 Each iteration prints visible progress so you always know what's happening:
 
@@ -169,7 +202,7 @@ Steps per iteration:
 7. **Discards** — deletes the worktree and branch, main untouched — if AFTER < BEFORE
 8. **Logs** the result to `.claude/autoimprove/log.md`
 
-### 5. The log
+### 6. The log
 
 After each iteration, `.claude/autoimprove/log.md` gets an entry like:
 
@@ -190,10 +223,10 @@ After each iteration, `.claude/autoimprove/log.md` gets an entry like:
 
 | Command | Description |
 |---|---|
-| `/autoimprove:setup` | Detect stack, generate `.claude/autoimprove/config.md`, show baseline score |
+| `/autoimprove:setup` | Detect stack, generate config, and run initial audit |
+| `/autoimprove:audit` | Scan codebase for deficiencies and get a prioritized fix plan |
 | `/autoimprove:improve [N] ["focus"]` | Run N iterations of the loop (default: 5), optionally focused on a specific task |
 | `/autoimprove:continue [N] ["focus"]` | Resume an interrupted session — inherits remaining iterations and focus from the log |
-| `/autoimprove:measure` | Check current score without making any changes |
 | `/autoimprove:status` | Show a summary of all runs from `.claude/autoimprove/log.md` |
 | `/autoimprove:upgrade` | Check for and install the latest version |
 
@@ -354,6 +387,8 @@ autoimprove/
 ├── hooks/
 │   └── sessionstart.sh      # update check on startup (once per day)
 ├── skills/
+│   ├── audit/
+│   │   └── SKILL.md         # Codebase deficiency scan, prioritized report, interactive fix loop
 │   ├── detect-stack/
 │   │   └── SKILL.md         # Fingerprints project, writes .claude/autoimprove/config.md
 │   ├── worktree/
@@ -361,16 +396,16 @@ autoimprove/
 │   ├── improve-loop/
 │   │   └── SKILL.md         # Core loop: worktree → propose → implement → measure → merge/delete
 │   ├── measure/
-│   │   └── SKILL.md         # Standalone score check
+│   │   └── SKILL.md         # Internal scoring utility (used by audit and improve-loop)
 │   └── rollback/
 │       └── SKILL.md         # Emergency cleanup of all experiment worktrees
 └── commands/
-    ├── continue.md          # /autoimprove:continue [N] ["focus"]
-    ├── setup.md             # /autoimprove:setup
-    ├── improve.md           # /autoimprove:improve [N] ["focus"]
-    ├── measure.md           # /autoimprove:measure
-    ├── status.md            # /autoimprove:status
-    └── upgrade.md           # /autoimprove:upgrade (check for updates)
+    ├── audit.md              # /autoimprove:audit
+    ├── continue.md           # /autoimprove:continue [N] ["focus"]
+    ├── setup.md              # /autoimprove:setup
+    ├── improve.md            # /autoimprove:improve [N] ["focus"]
+    ├── status.md             # /autoimprove:status
+    └── upgrade.md            # /autoimprove:upgrade (check for updates)
 ```
 
 ---
