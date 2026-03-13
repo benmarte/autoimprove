@@ -47,9 +47,29 @@ Each session now begins with a structured header block:
 1. Session starts → `IN_PROGRESS (0/M completed)`
 2. After each iteration → update to `IN_PROGRESS (N/M completed)`
 3. All iterations done → `COMPLETED (M/M)`
-4. On next read, if status is still `IN_PROGRESS` but no iterations are running → treat as `INTERRUPTED`
+4. Any `IN_PROGRESS` status found when `continue` or `status` is invoked → treated as `INTERRUPTED`
 
-Since we cannot hook into Ctrl+C reliably, interruption is detected lazily: if the last session's status is `IN_PROGRESS` but the process isn't running, it's interrupted. The `continue` command and `status` command both detect this.
+There is no process detection. Since each Claude Code session is independent, any `IN_PROGRESS` status encountered at command invocation time is definitionally interrupted — the original session is gone.
+
+### Legacy Log Compatibility
+
+Logs written before this feature will not have session headers. When parsing the log:
+
+- If no session header (`## Session —`) is found → treat the entire log as a completed legacy session
+- `continue` on a legacy log → "No resumable session found. Use `/autoimprove:improve` to start a new session with the new format."
+- New sessions always write the new header format
+- Legacy iteration entries (without a session header) are preserved as-is; no migration is needed
+
+### Status Update Mechanism
+
+The status line is updated in-place after each iteration via string replacement:
+
+1. Read `.claude/autoimprove/log.md`
+2. Find the last `**Status:**` line in the last session header
+3. Replace it with the updated status (e.g., `IN_PROGRESS (3/10 completed)`)
+4. Write the file back
+
+If the status line cannot be found (file corruption, manual edits), append a new status line to the session header block and log a warning. This is a best-effort update — the iteration records themselves are the source of truth for what completed.
 
 ## Continue Command Flow
 
@@ -117,6 +137,7 @@ When displaying log summary, if the last session is interrupted:
 | File | Change | Description |
 |---|---|---|
 | `commands/continue.md` | **Add** | New command entry point |
+| `commands/improve.md` | **Modify** | Pass `session_mode: new` to improve-loop |
 | `skills/improve-loop/SKILL.md` | **Modify** | Add session header format, accept start params, update status |
 | `commands/status.md` | **Modify** | Show interrupted session hint |
 | `README.md` | **Modify** | Document new command and session continuation |
@@ -133,7 +154,8 @@ When displaying log summary, if the last session is interrupted:
 | User overrides with fewer iterations | Allowed — runs fewer than remaining |
 | HEAD moved since last session | Warn and re-measure baseline |
 | Multiple interrupted sessions | Only the most recent is resumable |
-| Continue after continue | Works — updates the same session header |
+| Continue after continue | Works — updates `Planned` field to new total (`completed + N`) and continues |
+| Experiment branch numbering | Continues from last number (count iteration entries in log) to avoid collisions |
 
 ## Iteration Numbering
 
@@ -150,3 +172,5 @@ If user overrides with `/autoimprove:continue 3`:
 ```
 
 (4 completed + 3 new = 7 total)
+
+The session header's `Planned` field is updated to reflect the new total (7 in this case), keeping header and display in sync.
