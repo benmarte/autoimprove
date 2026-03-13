@@ -57,6 +57,35 @@ git show HEAD       # inspect the latest win
 
 That's it. No config required upfront — `/autoimprove:setup` fingerprints your project and writes `.claude/autoimprove/config.md` automatically.
 
+### Upgrading
+
+#### If you already have the upgrade command
+
+```bash
+/autoimprove:upgrade
+```
+
+#### If you don't have the upgrade command (older installs)
+
+The plugin system caches marketplace clones locally. If your install predates the upgrade command, you need to update the marketplace clone first:
+
+```bash
+# 1. Update the marketplace clone
+cd ~/.claude/plugins/marketplaces/autoimprove && git pull origin main
+
+# 2. Reinstall the plugin
+/plugin update autoimprove@autoimprove
+```
+
+If `/plugin update` still shows "already at the latest version", uninstall and reinstall:
+
+```bash
+/plugin uninstall autoimprove@autoimprove
+/plugin install autoimprove@autoimprove
+```
+
+After this, `/autoimprove:upgrade` will be available for all future updates.
+
 ### Auto-update check
 
 autoimprove checks for new releases once per day on session start. If an update is available, you'll see:
@@ -66,11 +95,7 @@ Update available: v1.0.0 → v1.1.0
 Run /autoimprove:upgrade to update.
 ```
 
-The check is lightweight (single GitHub API call, 3s timeout, cached for 24 hours) and never blocks startup. To upgrade manually:
-
-```bash
-/autoimprove:upgrade
-```
+The check is lightweight (single GitHub API call, 3s timeout, cached for 24 hours) and never blocks startup.
 
 ---
 
