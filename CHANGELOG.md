@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- `/autoimprove:audit` command — scan codebase for deficiencies with prioritized fix plan
+- Audit report with score breakdown, progress bars, efficiency ranking, and token usage estimates
+- Interactive fix loop — audit offers to start fixing area-by-area after showing the report
+- Setup auto-runs audit after generating config for seamless first-time experience
 - `/autoimprove:continue` command to resume interrupted sessions
 - Session headers in log with planned count, focus, baseline, base commit, and status tracking
 - Interrupted session detection in `/autoimprove:status` with resume hint
@@ -15,6 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Changed
 - Improve-loop now writes and updates session headers in the log
 - Log format extended with structured session metadata (backwards-compatible with legacy logs)
+- Setup command now protects existing config (asks before re-detecting stack)
+
+### Removed
+- `/autoimprove:measure` command (subsumed by `/autoimprove:audit` — measure skill kept as internal utility)
 
 ## [1.2.0] - 2026-03-13
 
